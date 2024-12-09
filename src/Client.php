@@ -94,19 +94,19 @@ class Client
 
     public function __get($resourceName)
     {
-        $resourceClassName = __NAMESPACE__."\\Resources\\".$resourceName;
-  
+        $resourceClassName = __NAMESPACE__ . "\\Resources\\" . ucfirst($resourceName);
+
         if (!in_array($resourceClassName, $this->resources)) {
             $resourceClassName = null;
             foreach ($this->resources as $resource) {
-             
-                if (strpos($resource, __NAMESPACE__."\\Resources\\") === 0) {
+
+                if (strpos($resource, __NAMESPACE__ . "\\Resources\\") === 0) {
                     continue;
                 }
 
-    
-                $lookup = "\\".$resourceName;
-                if (0 === substr_compare($resource, $lookup, - strlen($lookup))) {
+
+                $lookup = "\\" . $resourceName;
+                if (0 === substr_compare($resource, $lookup, -strlen($lookup))) {
                     $resourceClassName = $resource;
                     break;
                 }
@@ -114,13 +114,13 @@ class Client
         }
 
         if ($resourceClassName === null) {
-            throw new Exception("Invalid resource ".$resourceName);
+            throw new Exception("Invalid resource " . $resourceName);
         }
 
 
         $resource = new $resourceClassName();
         if (!$resource instanceof Resource) {
-            throw new Exception("Invalid resource object ".$resourceName);
+            throw new Exception("Invalid resource object " . $resourceName);
         }
 
         $resource->useApiClient($this);

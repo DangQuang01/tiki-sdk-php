@@ -32,6 +32,7 @@ class Shop extends Resource
     }
 
     // Cập nhật cài đặt "can_update_product"
+    //  ⚠️ Deprecated
     public function updateCanUpdateProduct($canUpdate)
     {
         $endpoint = 'integration/v1/sellers/me/updateCanUpdateProduct';

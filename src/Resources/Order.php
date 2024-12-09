@@ -1,17 +1,10 @@
 <?php
 namespace Dangquang\TikiPhp\Resources;
 
-use Dangquang\TikiPhp\Client;
 use Dangquang\TikiPhp\Resource;
+
 class Order extends Resource
 {
-    private $client;
-
-    public function __construct(Client $client)
-    {
-        $this->client = $client;
-    }
-
     /**
      * Lấy danh sách đơn hàng
      *
@@ -20,83 +13,200 @@ class Order extends Resource
      */
     public function getOrderList(array $params = [])
     {
-        return $this->client->callApi('v2/orders', $params);
+        $url = "v2/orders";
+
+        if (!empty($params)) {
+            $url .= '?' . http_build_query($params);
+        }
+
+        return $this->call($url);
     }
 
     /**
      * Lấy chi tiết một đơn hàng
      *
      * @param string $orderId ID của đơn hàng
+     * @param string|null $include Các trường bổ sung cần lấy (ví dụ: status_histories,item.fees)
      * @return array
      */
-    public function getOrderDetail($orderId)
+    public function getOrderDetail($orderId, $include = null)
     {
-        return $this->client->callApi("v2/orders/{$orderId}");
+        $url = "v2/orders/{$orderId}";
+
+        if ($include) {
+            $url .= "?include={$include}";
+        }
+
+        return $this->call($url);
+    }
+
+
+    /**
+     * Xác nhận đủ hàng tồn kho cho đơn hàng
+     *
+     * @param string $orderId ID của đơn hàng cần xác nhận
+     * @param array $availableItemIds Danh sách item IDs có đủ hàng
+     * @param int $sellerInventoryId ID của kho hàng của seller
+     * @return array Kết quả xác nhận
+     */
+    public function confirmEnoughStock($orderId, array $availableItemIds, $sellerInventoryId)
+    {
+        $url = "v2/orders/{$orderId}/confirm-available";
+
+        $payload = [
+            'available_item_ids' => $availableItemIds,
+            'seller_inventory_id' => $sellerInventoryId,
+        ];
+        return $this->call($url, $payload, 'POST');
     }
 
     /**
-     * Xác nhận đủ hàng cho một đơn hàng (Drop shipping)
+     * Xác nhận đủ hàng tồn kho cho đơn hàng Drop Shipping
      *
-     * @param string $orderId ID của đơn hàng
-     * @param array $data Dữ liệu xác nhận (confirmation_status, seller_inventory_id)
-     * @return array
+     * @param string $orderId ID của đơn hàng cần xác nhận
+     * @param string $confirmationStatus Trạng thái xác nhận (seller_confirmed hoặc seller_canceled)
+     * @param int $sellerInventoryId ID của kho hàng của seller
+     * @return array Kết quả xác nhận
      */
-    public function confirmAvailableStock($orderId, array $data)
+    public function confirmEnoughStockForDropShipping($orderId, $confirmationStatus, $sellerInventoryId)
     {
-        return $this->client->callApi("v2/orders/{$orderId}/dropship/confirm-available", $data, 'POST');
-    }
+        $url = "v2/orders/{$orderId}/dropship/confirm-available";
 
-    /**
-     * Lấy thời gian pickup dự kiến cho đơn hàng Drop Shipping
-     *
-     * @return array
-     */
-    public function getExpectedPickupTimes()
-    {
-        return $this->client->callApi('v2/orders/dropship/expected-pickup-slots');
-    }
-
-    /**
-     * Xác nhận hoàn thành đóng gói cho Drop Shipping
-     *
-     * @param string $orderId ID của đơn hàng
-     * @param int $sellerInventoryId ID kho của người bán
-     * @return array
-     */
-    public function confirmPacking($orderId, $sellerInventoryId)
-    {
-        $data = [
+        $payload = [
+            'confirmation_status' => $confirmationStatus,
             'seller_inventory_id' => $sellerInventoryId,
         ];
 
-        return $this->client->callApi("v2/orders/{$orderId}/dropship/confirm-packing", $data, 'POST');
+        return $this->call($url, $payload, 'POST');
     }
 
     /**
-     * Xác nhận đủ hàng cho đơn hàng Fulfillment On-demand
+     * Lấy danh sách kho hàng của seller tương ứng với mã kho Tiki
      *
-     * @param string $orderId ID của đơn hàng
-     * @param array $data Dữ liệu xác nhận (confirmation_status, seller_inventory_id)
-     * @return array
+     * @param array $tikiWarehouseCodes Mã kho Tiki (ví dụ: ['sgn', 'hn4'])
+     * @return array Kết quả trả về danh sách kho hàng và ánh xạ
      */
-    public function confirmOdfStock($orderId, array $data)
+    public function getSellerInventories(array $tikiWarehouseCodes)
     {
-        return $this->client->callApi("v2/orders/{$orderId}/confirm-available", $data, 'POST');
+        $warehouseCodes = implode(',', $tikiWarehouseCodes);
+
+        $url = "v2/seller-inventories?tiki_warehouse_codes={$warehouseCodes}";
+
+        return $this->call($url);
     }
 
+
     /**
-     * Cập nhật trạng thái giao hàng cho Seller Delivery
+     * Cập nhật trạng thái giao hàng cho đơn hàng seller delivery
      *
-     * @param string $orderId ID của đơn hàng
-     * @param string $status Trạng thái giao hàng
-     * @return array
+     * @param string $orderCode Mã đơn hàng cần cập nhật
+     * @param string $status Trạng thái giao hàng ('successful_delivery' hoặc 'failed_delivery')
+     * @param string|null $failureCause Nguyên nhân thất bại (nếu có)
+     * @param string|null $appointmentDate Ngày hẹn giao lại (nếu failureCause là redelivery_appointment)
+     * @param string|null $note Ghi chú giao hàng (nếu có)
+     * @return array Kết quả trả về từ API
      */
-    public function updateShipmentStatus($orderId, $status)
+    public function updateDeliveryStatus($orderCode, $status, $failureCause = null, $appointmentDate = null, $note = null)
     {
-        $data = [
+        $url = "v2/orders/{$orderCode}/seller-delivery/update-delivery";
+
+        $payload = [
             'status' => $status,
         ];
 
-        return $this->client->callApi("v2/orders/{$orderId}/update-shipment-status", $data, 'POST');
+        if ($status === 'failed_delivery') {
+            $payload['failure_cause'] = $failureCause;
+            if ($failureCause === 'redelivery_appointment' && $appointmentDate) {
+                $payload['appointment_date'] = $appointmentDate;
+            }
+            if ($note) {
+                $payload['note'] = $note;
+            }
+        }
+
+        return $this->call($url, $payload, 'POST');
     }
+
+
+    /**
+     * Cập nhật trạng thái vận chuyển cho đơn hàng cross-border
+     *
+     * @param string $orderCode Mã đơn hàng cần cập nhật
+     * @param string $status Trạng thái vận chuyển
+     * @param string $updateTime Thời gian cập nhật trạng thái
+     * @return array Kết quả trả về từ API
+     */
+    public function updateShipmentStatus($orderCode, $status, $updateTime)
+    {
+        $url = "v2/orders/{$orderCode}/cross-border/update-shipment";
+
+        $payload = [
+            'status' => $status,
+            'update_time' => $updateTime
+        ];
+
+        return $this->call($url, $payload, 'POST');
+    }
+
+
+    /**
+     * Lấy nhãn vận chuyển cho đơn hàng On-Demand Fulfillment
+     *
+     * @param string $orderCode Mã đơn hàng cần lấy nhãn vận chuyển
+     * @param string $format Định dạng nhãn vận chuyển (ví dụ: html)
+     * @return array Kết quả trả về từ API
+     */
+    public function getShippingLabel($orderCode, $format = 'html')
+    {
+        $url = "v2/orders/{$orderCode}/tiki-delivery/labels?format={$format}";
+
+        return $this->call($url);
+    }
+
+    /**
+     * Lấy nhãn hóa đơn cho đơn hàng Seller Delivery
+     *
+     * @param string $orderCode Mã đơn hàng cần lấy nhãn hóa đơn
+     * @param string $format Định dạng nhãn hóa đơn (ví dụ: html)
+     * @return array Kết quả trả về từ API
+     */
+    public function getInvoiceLabel($orderCode, $format = 'html')
+    {
+        $url = "v2/orders/{$orderCode}/seller-delivery/labels?format={$format}";
+
+        return $this->call($url);
+    }
+
+
+    /**
+     * Lấy nhãn giao hàng và dấu giao hàng cho đơn hàng Dropship
+     *
+     * @param string $orderCode Mã đơn hàng cần lấy nhãn giao hàng
+     * @param string $format Định dạng nhãn (ví dụ: html)
+     * @return array Kết quả trả về từ API
+     */
+    public function getShippingStamp($orderCode, $format = 'html')
+    {
+        $url = "v2/orders/{$orderCode}/dropship/labels?format={$format}";
+
+        return $this->call($url);
+    }
+
+
+    /**
+     * Lấy nhãn giao hàng cho đơn hàng Cross Border
+     *
+     * @param string $orderCode Mã đơn hàng cần lấy nhãn giao hàng
+     * @param string $format Định dạng nhãn (ví dụ: html)
+     * @return array Kết quả trả về từ API
+     */
+    public function getCrossBorderLabel($orderCode, $format = 'html')
+    {
+        $url = "v2/orders/{$orderCode}/cross-border/labels?format={$format}";
+
+        return $this->call($url);
+    }
+
+
+
 }
