@@ -15,7 +15,7 @@ class Client
     ];
 
     private $client;
-    private $accessToken;
+    private $accessToken = '9T5PRi4-cmtIyhPdrfT04WGuSYlnXqcSFI9JIAPUvtI.fpa_rmGfOEbhH5JWCoiZ2f1Yxk3mj-g9ajdPqB8X9KI';
 
     private $appID;
     private $appSecret;
