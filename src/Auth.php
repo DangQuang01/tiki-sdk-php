@@ -61,6 +61,8 @@ class Auth
         }
 
         $this->client->setAccessToken($response['access_token']);
+
+        return $response;
     }
 
     public function refreshToken($refreshToken)
@@ -78,7 +80,7 @@ class Auth
 
         if (isset($response['access_token'])) {
             $this->client->setAccessToken($response['access_token']);
-            return $response['access_token'];
+            return $response;
         }
 
     }
@@ -97,7 +99,7 @@ class Auth
 
         if (isset($response['access_token'])) {
             $this->client->setAccessToken($response['access_token']);
-            return $response['access_token'];
+            return $response;
         }
     }
 

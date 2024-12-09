@@ -17,17 +17,17 @@ class Client
     private $client;
     private $accessToken;
 
-    private $apiKey;
-    private $apiSecret;
+    private $appID;
+    private $appSecret;
 
-    public function __construct($apiKey, $apiSecret)
+    public function __construct($appID, $appSecret)
     {
         $this->client = new GuzzleClient([
             'base_uri' => Config::get('base_url'),
         ]);
 
-        $this->apiKey = $apiKey;
-        $this->apiSecret = $apiSecret;
+        $this->appID = $appID;
+        $this->appSecret = $appSecret;
     }
 
     public function setAccessToken($accessToken)
@@ -42,12 +42,12 @@ class Client
 
     public function getApiKey()
     {
-        return $this->apiKey;
+        return $this->appID;
     }
 
     public function getApiSecret()
     {
-        return $this->apiSecret;
+        return $this->appSecret;
     }
 
 
