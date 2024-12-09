@@ -1,6 +1,7 @@
 <?php
 namespace Dangquang\TikiPhp\Resources;
 
+use Dangquang\TikiPhp\Config;
 use Dangquang\TikiPhp\Resource;
 
 class Order extends Resource
@@ -13,7 +14,7 @@ class Order extends Resource
      */
     public function getOrderList(array $params = [])
     {
-        $url = "integration/v2/orders";
+        $url = Config::get('order_endpoint');
 
         if (!empty($params)) {
             $url .= '?' . http_build_query($params);
@@ -31,7 +32,7 @@ class Order extends Resource
      */
     public function getOrderDetail($orderId, $include = null)
     {
-        $url = "integration/v2/orders/{$orderId}";
+        $url = Config::get('order_endpoint') . "/{$orderId}";
 
         if ($include) {
             $url .= "?include={$include}";
@@ -51,7 +52,7 @@ class Order extends Resource
      */
     public function confirmEnoughStock($orderId, array $availableItemIds, $sellerInventoryId)
     {
-        $url = "integration/v2/orders/{$orderId}/confirm-available";
+        $url = Config::get('order_endpoint') . "/{$orderId}/confirm-available";
 
         $payload = [
             'available_item_ids' => $availableItemIds,
@@ -70,7 +71,7 @@ class Order extends Resource
      */
     public function confirmEnoughStockForDropShipping($orderId, $confirmationStatus, $sellerInventoryId)
     {
-        $url = "integration/v2/orders/{$orderId}/dropship/confirm-available";
+        $url = Config::get('order_endpoint') . "/{$orderId}/dropship/confirm-available";
 
         $payload = [
             'confirmation_status' => $confirmationStatus,
@@ -108,7 +109,7 @@ class Order extends Resource
      */
     public function updateDeliveryStatus($orderCode, $status, $failureCause = null, $appointmentDate = null, $note = null)
     {
-        $url = "integration/v2/orders/{$orderCode}/seller-delivery/update-delivery";
+        $url = Config::get('order_endpoint') . "/{$orderCode}/seller-delivery/update-delivery";
 
         $payload = [
             'status' => $status,
@@ -138,7 +139,7 @@ class Order extends Resource
      */
     public function updateShipmentStatus($orderCode, $status, $updateTime)
     {
-        $url = "integration/v2/orders/{$orderCode}/cross-border/update-shipment";
+        $url = Config::get('order_endpoint') . "/{$orderCode}/cross-border/update-shipment";
 
         $payload = [
             'status' => $status,
@@ -158,7 +159,7 @@ class Order extends Resource
      */
     public function getShippingLabel($orderCode, $format = 'html')
     {
-        $url = "integration/v2/orders/{$orderCode}/tiki-delivery/labels?format={$format}";
+        $url = Config::get('order_endpoint') . "/{$orderCode}/tiki-delivery/labels?format={$format}";
 
         return $this->call($url);
     }
@@ -172,7 +173,7 @@ class Order extends Resource
      */
     public function getInvoiceLabel($orderCode, $format = 'html')
     {
-        $url = "integration/v2/orders/{$orderCode}/seller-delivery/labels?format={$format}";
+        $url = Config::get('order_endpoint') . "/{$orderCode}/seller-delivery/labels?format={$format}";
 
         return $this->call($url);
     }
@@ -187,7 +188,7 @@ class Order extends Resource
      */
     public function getShippingStamp($orderCode, $format = 'html')
     {
-        $url = "integration/v2/orders/{$orderCode}/dropship/labels?format={$format}";
+        $url = Config::get('order_endpoint') . "/{$orderCode}/dropship/labels?format={$format}";
 
         return $this->call($url);
     }
@@ -202,7 +203,7 @@ class Order extends Resource
      */
     public function getCrossBorderLabel($orderCode, $format = 'html')
     {
-        $url = "integration/v2/orders/{$orderCode}/cross-border/labels?format={$format}";
+        $url = Config::get('order_endpoint') . "/{$orderCode}/cross-border/labels?format={$format}";
 
         return $this->call($url);
     }

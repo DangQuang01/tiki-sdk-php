@@ -3,13 +3,14 @@
 namespace Dangquang\TikiPhp\Resources;
 
 use Dangquang\TikiPhp\Resource;
+use Dangquang\TikiPhp\Config;
 
 class Shop extends Resource
 {
     // Lấy thông tin seller
     public function getSellerInfo()
     {
-        $endpoint = 'integration/v2/sellers/me';
+        $endpoint = Config::get('shop_endpoint');
         $response = $this->call($endpoint);
 
         return $response; 
@@ -18,7 +19,7 @@ class Shop extends Resource
     // Lấy danh sách kho hàng của seller
     public function getSellerWarehouses($status = 1, $type = 1, $limit = 20, $page = 1)
     {
-        $endpoint = 'integration/v2/sellers/me/warehouses';
+        $endpoint = Config::get('shop_endpoint') . '/warehouses';
         $params = [
             'status' => $status,
             'type' => $type,
