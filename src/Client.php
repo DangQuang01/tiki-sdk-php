@@ -2,10 +2,18 @@
 
 namespace Dangquang\TikiPhp;
 
+use Dangquang\TikiPhp\Errors\Exception;
 use GuzzleHttp\Client as GuzzleClient;
+use Dangquang\TikiPhp\Resources\Shop;
+use Dangquang\TikiPhp\Resources\Order;
 
 class Client
 {
+    protected $resources = [
+        Shop::class,
+        Order::class,
+    ];
+
     private $client;
     private $accessToken;
 
@@ -48,22 +56,11 @@ class Client
         return new Auth($this);
     }
 
-    public function order()
-    {
-        return new Order($this);
-    }
-
-    public function shop(){
-        return new Shop($this);
-    }
-
     public function callApi($endpoint, $data = [], $method = 'GET', $headers = [])
     {
         $method = strtoupper($method);
 
         $options = [];
-
-        echo "Token: ". $this->accessToken;
 
         if ($headers) {
             $options['headers'] = $headers;
@@ -88,21 +85,47 @@ class Client
             return json_decode($response->getBody()->getContents(), true);
 
         } catch (\GuzzleHttp\Exception\RequestException $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
-                'status_code' => $e->hasResponse() ? $e->getResponse()->getStatusCode() : null,
-                'response' => $e->hasResponse() ? json_decode($e->getResponse()->getBody()->getContents(), true) : null,
-            ];
+            return Exception::handleApiError($e);
         } catch (\Exception $e) {
-            // Các lỗi khác
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
-                'status_code' => null,
-                'response' => null,
-            ];
+            return Exception::handleApiError($e);
         }
+    }
+
+
+    public function __get($resourceName)
+    {
+        $resourceClassName = __NAMESPACE__."\\Resources\\".$resourceName;
+  
+        if (!in_array($resourceClassName, $this->resources)) {
+            $resourceClassName = null;
+            foreach ($this->resources as $resource) {
+             
+                if (strpos($resource, __NAMESPACE__."\\Resources\\") === 0) {
+                    continue;
+                }
+
+    
+                $lookup = "\\".$resourceName;
+                if (0 === substr_compare($resource, $lookup, - strlen($lookup))) {
+                    $resourceClassName = $resource;
+                    break;
+                }
+            }
+        }
+
+        if ($resourceClassName === null) {
+            throw new Exception("Invalid resource ".$resourceName);
+        }
+
+
+        $resource = new $resourceClassName();
+        if (!$resource instanceof Resource) {
+            throw new Exception("Invalid resource object ".$resourceName);
+        }
+
+        $resource->useApiClient($this);
+
+        return $resource;
     }
 
 

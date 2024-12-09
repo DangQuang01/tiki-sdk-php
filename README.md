@@ -18,4 +18,19 @@ Tiki Client is a simple SDK implementation of Tiki API by QuangCode7Mau.
 
 ```bash
 composer require dangquang/tiki-sdk-php
+```
 
+### Cấu hình
+
+Trước khi sử dụng Tiki SDK, bạn cần cấu hình một số thông tin quan trọng, bao gồm API Key, API Secret và Access Token. Bạn có thể cấu hình chúng trong file `.env` của Laravel hoặc bằng cách sử dụng các tham số trong mã nguồn của bạn.
+
+**1. Tạo một đối tượng Client**
+
+Bạn cần tạo một đối tượng `Client` bằng cách truyền vào `apiKey` và `apiSecret` của bạn. Đây là thông tin mà bạn nhận được khi đăng ký và tạo ứng dụng trên Tiki.
+
+```php
+use Dangquang\TikiPhp\Client;
+
+// Khởi tạo Client với API Key và API Secret
+$client = new Client('your-api-key', 'your-api-secret');
+```

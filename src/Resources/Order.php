@@ -1,7 +1,9 @@
 <?php
-namespace Dangquang\TikiPhp;
+namespace Dangquang\TikiPhp\Resources;
 
-class Order
+use Dangquang\TikiPhp\Client;
+use Dangquang\TikiPhp\Resource;
+class Order extends Resource
 {
     private $client;
 
