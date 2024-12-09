@@ -17,7 +17,13 @@
     "php": ">=7.2",
     "another-vendor/package": "1.*"
   },
-  "minimum-stability": "dev",
+  "minimum-stability": "unstable",
   "prefer-stable": true,
-  "license": "MIT"
+  "license": "MIT",
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/DangQuang01/tiki-sdk-php"
+    }
+  ]
 }
