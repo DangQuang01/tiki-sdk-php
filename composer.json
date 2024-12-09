@@ -1,0 +1,20 @@
+{
+  "name": "dangquang/tiki-sdk-php",
+  "description": "Tiki Client is a simple SDK implementation of Tiki API by QuangCode7Mau",
+  "autoload": {
+    "psr-4": {
+      "Dangquang\\TikiPhp\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Dang Quang",
+      "email": "danggquang01@gmail.com"
+    }
+  ],
+  "require": {
+    "guzzlehttp/guzzle": "^7.9"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
