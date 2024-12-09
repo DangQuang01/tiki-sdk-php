@@ -13,8 +13,11 @@
     }
   ],
   "require": {
-    "guzzlehttp/guzzle": "^7.9"
+    "guzzlehttp/guzzle": "^7.9",
+    "php": ">=7.2",
+    "another-vendor/package": "1.*"
   },
   "minimum-stability": "dev",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "license": "MIT"
 }
